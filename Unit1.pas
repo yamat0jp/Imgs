@@ -28,7 +28,7 @@ type
   private
     { private éŒ¾ }
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
-    procedure Main(FileName: string; var X, Y: Single);
+    function Main(FileName: string; var X, Y: Single): Single;
   public
     { public éŒ¾ }
   end;
@@ -40,13 +40,16 @@ implementation
 
 {$R *.fmx}
 
-uses System.IOUtils;
+uses System.IOUtils, System.Threading;
+
+var
+  max: Single;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 var
   Child: TTreeViewItem;
   option: TSearchOption;
-  X, Y: Single;
+  X, Y, tmp: Single;
 begin
   if (depth = 0) or (Pos('.', dir.Text) > 0) then
     Exit;
@@ -59,15 +62,20 @@ begin
     dir.AddObject(Child);
     AddDir(Child, depth - 1);
   end;
-  X := 0.0;
+  X := 10;
   Y := 0.0;
+  max := Y;
   for var item in TDirectory.GetFiles(dir.TagString, '*.jpg', option) do
   begin
     Child := TTreeViewItem.Create(dir);
     Child.Text := ExtractFileName(item);
     dir.AddObject(Child);
-    if dir = TreeView1.Selected then
-      Main(item, X, Y);
+    if depth = 2 then
+    begin
+      tmp := Main(item, X, Y);
+      if tmp > max then
+        max := tmp;
+    end;
   end;
 end;
 
@@ -89,30 +97,39 @@ begin
   TreeView1.AddObject(Node);
 end;
 
-procedure TForm1.Main(FileName: string; var X, Y: Single);
+function TForm1.Main(FileName: string; var X, Y: Single): Single;
 var
-  r1, r2, wid, hei: TRectF;
+  r1, r2: TRectF;
   a: Single;
 begin
+  result := 0.0;
   a := 100 + TrackBar1.Value * 50;
   Image1.Bitmap.LoadThumbnailFromFile(FileName, a, a, false);
   r1 := Image1.Bitmap.BoundsF;
-  if X + r1.Width < Width then
-    X := X + r1.Width + 10
+  r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
+  if r2.Right < VertScrollBox1.Width then
+  begin
+    X := r2.Right + 10;
+    result := Y + r1.Height + 10;
+  end
   else
   begin
-    X := 0.0;
-    Y := Y + r1.Height + 10;
+    X := 10;
+    Y := max;
+    r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
   end;
-  r2 := RectF(r1.Left + X, r1.Top + Y, r1.Right + X, r1.Bottom + Y);
   if Image2.Height < r2.Bottom then
     Image2.Height := r2.Bottom;
-  Image2.Canvas.BeginScene;
-  try
-    Image2.Canvas.DrawBitmap(Image1.Bitmap, r1, r2, 1.0);
-  finally
-    Image2.Canvas.EndScene;
-  end;
+  TTask.Run(
+    procedure
+    begin
+      VertScrollBox1.Canvas.BeginScene;
+      try
+        VertScrollBox1.Canvas.DrawBitmap(Image1.Bitmap, r1, r2, 1.0, true);
+      finally
+        VertScrollBox1.Canvas.EndScene;
+      end;
+    end);
 end;
 
 procedure TForm1.TrackBar1Change(Sender: TObject);
