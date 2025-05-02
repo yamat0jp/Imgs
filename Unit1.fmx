@@ -62,10 +62,11 @@ object Form1: TForm1
       Viewport.Width = 749.000000000000000000
       Viewport.Height = 507.000000000000000000
       object Image2: TImage
-        MultiResBitmap = <
-          item
-          end>
-        Position.X = -7.000000000000000000
+        MultiResBitmap.Height = 2039
+        MultiResBitmap.Width = 1378
+        MultiResBitmap = <>
+        Position.X = 73.000000000000000000
+        Position.Y = 72.000000000000000000
         Size.Width = 524.000000000000000000
         Size.Height = 411.000000000000000000
         Size.PlatformDefault = False

@@ -29,6 +29,7 @@ type
     { private êÈåæ }
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
     function Main(FileName: string; var X, Y: Single): Single;
+    function Ext(str: string; args: array of string): Boolean;
   public
     { public êÈåæ }
   end;
@@ -65,8 +66,11 @@ begin
   X := 10;
   Y := 0.0;
   max := Y;
-  for var item in TDirectory.GetFiles(dir.TagString, '*.jpg', option) do
+  for var item in TDirectory.GetFiles(dir.TagString, '*.*', option) do
   begin
+    if not Ext(ExtractFileExt(item), ['.jpg', '.jpeg', '.bmp', '.tif', '.tiff',
+      '.png', '.gif']) then
+      continue;
     Child := TTreeViewItem.Create(dir);
     Child.Text := ExtractFileName(item);
     dir.AddObject(Child);
@@ -77,6 +81,14 @@ begin
         max := tmp;
     end;
   end;
+end;
+
+function TForm1.Ext(str: string; args: array of string): Boolean;
+begin
+  for var arg in args do
+    if LowerCase(str) = arg then
+      Exit(true);
+  result := false;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -106,10 +118,10 @@ begin
   a := 100 + TrackBar1.Value * 50;
   Image1.Bitmap.LoadThumbnailFromFile(FileName, a, a, false);
   r1 := Image1.Bitmap.BoundsF;
-  r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
-  if r2.Right < VertScrollBox1.Width then
+  if r1.Width + X < VertScrollBox1.Width then
   begin
-    X := r2.Right + 10;
+    r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
+    X := r1.Width + X + 10;
     result := Y + r1.Height + 10;
   end
   else
