@@ -7,7 +7,7 @@ uses
   System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.Controls.Presentation, FMX.StdCtrls, FMX.Menus, FMX.Layouts, FMX.TreeView,
-  FMX.Objects;
+  FMX.Objects, FMX.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -16,17 +16,16 @@ type
     MenuBar1: TMenuBar;
     StatusBar1: TStatusBar;
     Image1: TImage;
-    VertScrollBox1: TVertScrollBox;
     Panel1: TPanel;
     TrackBar1: TTrackBar;
-    Image2: TImage;
     Panel2: TPanel;
+    Image2: TImage;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
-    procedure VertScrollBox1Resize(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
   private
     { private êÈåæ }
+    Buf: TBitmap;
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
     function Main(FileName: string; var X, Y: Single): Single;
     function Ext(str: string; args: array of string): Boolean;
@@ -64,7 +63,7 @@ begin
     AddDir(Child, depth - 1);
   end;
   X := 10;
-  Y := 0.0;
+  Y := 10;
   max := Y;
   for var item in TDirectory.GetFiles(dir.TagString, '*.*', option) do
   begin
@@ -107,6 +106,7 @@ begin
   Node.Text := TPath.GetDownloadsPath;
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
+  Buf := TBitmap.Create;
 end;
 
 function TForm1.Main(FileName: string; var X, Y: Single): Single;
@@ -116,9 +116,9 @@ var
 begin
   result := 0.0;
   a := 100 + TrackBar1.Value * 50;
-  Image1.Bitmap.LoadThumbnailFromFile(FileName, a, a, false);
   r1 := Image1.Bitmap.BoundsF;
-  if r1.Width + X < VertScrollBox1.Width then
+  Image1.Bitmap.LoadThumbnailFromFile(FileName, a, a, false);
+  if r1.Width + X < Image2.Width then
   begin
     r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
     X := r1.Width + X + 10;
@@ -130,18 +130,15 @@ begin
     Y := max;
     r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
   end;
-  if Image2.Height < r2.Bottom then
-    Image2.Height := r2.Bottom;
-  TTask.Run(
-    procedure
-    begin
-      VertScrollBox1.Canvas.BeginScene;
-      try
-        VertScrollBox1.Canvas.DrawBitmap(Image1.Bitmap, r1, r2, 1.0, true);
-      finally
-        VertScrollBox1.Canvas.EndScene;
-      end;
-    end);
+  with Image2 do
+  begin
+    Canvas.BeginScene;
+    try
+      DrawBitmap(Canvas, r2, Image1.Bitmap);
+    finally
+      Canvas.EndScene;
+    end;
+  end;
 end;
 
 procedure TForm1.TrackBar1Change(Sender: TObject);
@@ -152,36 +149,25 @@ end;
 procedure TForm1.TreeView1Change(Sender: TObject);
 var
   item: TTreeViewItem;
-  s: string;
 begin
-  item := TreeView1.Selected;
-  s := '.jpg';
-  if Assigned(item) then
-    s := ExtractFileExt(item.Text);
-  if LowerCase(s) = '.jpg' then
+  if ExtractFileExt(TreeView1.Selected.Text) <> '' then
     Exit;
-  Image2.Canvas.BeginScene;
-  try
-    Image2.Canvas.Clear(TAlphaColors.Black);
-  finally
-    Image2.Canvas.EndScene;
+  with Image2 do
+  begin
+    Canvas.BeginScene;
+    try
+      Canvas.Clear(TAlphaColors.Black);
+    finally
+      Canvas.EndScene;
+    end;
   end;
+  item := TreeView1.Selected;
   item.BeginUpdate;
   for var i := item.Count - 1 downto 0 do
     item.Items[i].Free;
   item.EndUpdate;
   AddDir(item);
   item.Expand;
-end;
-
-procedure TForm1.VertScrollBox1Resize(Sender: TObject);
-begin
-  Image2.Position.X := 50;
-  Image2.Position.Y := 50;
-  Image2.Width := VertScrollBox1.Width;
-  if Image2.Height < VertScrollBox1.Height then
-    Image1.Height := VertScrollBox1.Height;
-  // TreeView1Change(Self);
 end;
 
 end.
