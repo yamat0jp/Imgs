@@ -19,13 +19,11 @@ type
     Panel1: TPanel;
     TrackBar1: TTrackBar;
     Panel2: TPanel;
-    Image2: TImage;
+    ImageViewer1: TImageViewer;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
-    procedure TrackBar1Change(Sender: TObject);
   private
     { private êÈåæ }
-    Buf: TBitmap;
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
     function Main(FileName: string; var X, Y: Single): Single;
     function Ext(str: string; args: array of string): Boolean;
@@ -106,7 +104,6 @@ begin
   Node.Text := TPath.GetDownloadsPath;
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
-  Buf := TBitmap.Create;
 end;
 
 function TForm1.Main(FileName: string; var X, Y: Single): Single;
@@ -118,7 +115,7 @@ begin
   a := 100 + TrackBar1.Value * 50;
   r1 := Image1.Bitmap.BoundsF;
   Image1.Bitmap.LoadThumbnailFromFile(FileName, a, a, false);
-  if r1.Width + X < Image2.Width then
+  if r1.Width + X < ImageViewer1.Width then
   begin
     r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
     X := r1.Width + X + 10;
@@ -130,20 +127,15 @@ begin
     Y := max;
     r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
   end;
-  with Image2 do
+  with ImageViewer1 do
   begin
     Canvas.BeginScene;
     try
-      DrawBitmap(Canvas, r2, Image1.Bitmap);
+      Canvas.DrawBitmap(Image1.Bitmap, r1, r2, 1, true);
     finally
       Canvas.EndScene;
     end;
   end;
-end;
-
-procedure TForm1.TrackBar1Change(Sender: TObject);
-begin
-  TreeView1Change(Self);
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject);
@@ -152,7 +144,7 @@ var
 begin
   if ExtractFileExt(TreeView1.Selected.Text) <> '' then
     Exit;
-  with Image2 do
+  with ImageViewer1 do
   begin
     Canvas.BeginScene;
     try
