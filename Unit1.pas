@@ -13,13 +13,12 @@ type
   TForm1 = class(TForm)
     TreeView1: TTreeView;
     PopupMenu1: TPopupMenu;
-    MenuBar1: TMenuBar;
     StatusBar1: TStatusBar;
     Image1: TImage;
     Panel1: TPanel;
     TrackBar1: TTrackBar;
     Panel2: TPanel;
-    ImageViewer1: TImageViewer;
+    FramedVertScrollBox1: TFramedVertScrollBox;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
   private
@@ -111,11 +110,13 @@ var
   r1, r2: TRectF;
   a: Single;
 begin
+  if Y > FramedVertScrollBox1.Height then
+    Exit(0.0);
   result := 0.0;
   a := 100 + TrackBar1.Value * 50;
   r1 := Image1.Bitmap.BoundsF;
   Image1.Bitmap.LoadThumbnailFromFile(FileName, a, a, false);
-  if r1.Width + X < ImageViewer1.Width then
+  if r1.Width + X < FramedVertScrollBox1.Width then
   begin
     r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
     X := r1.Width + X + 10;
@@ -127,7 +128,7 @@ begin
     Y := max;
     r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
   end;
-  with ImageViewer1 do
+  with FramedVertScrollBox1 do
   begin
     Canvas.BeginScene;
     try
@@ -144,7 +145,7 @@ var
 begin
   if ExtractFileExt(TreeView1.Selected.Text) <> '' then
     Exit;
-  with ImageViewer1 do
+  with FramedVertScrollBox1 do
   begin
     Canvas.BeginScene;
     try

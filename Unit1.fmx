@@ -13,21 +13,15 @@ object Form1: TForm1
   Top = 360
   DesignerMasterStyle = 0
   object TreeView1: TTreeView
-    Align = Left
-    Position.Y = 24.000000000000000000
+    Align = Right
+    Position.X = 749.000000000000000000
     Size.Width = 297.000000000000000000
-    Size.Height = 627.000000000000000000
+    Size.Height = 651.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     OnChange = TreeView1Change
     Viewport.Width = 293.000000000000000000
-    Viewport.Height = 623.000000000000000000
-  end
-  object MenuBar1: TMenuBar
-    Size.Width = 1046.000000000000000000
-    Size.Height = 24.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 2
+    Viewport.Height = 647.000000000000000000
   end
   object StatusBar1: TStatusBar
     Position.Y = 651.000000000000000000
@@ -35,7 +29,7 @@ object Form1: TForm1
     Size.Width = 1046.000000000000000000
     Size.Height = 22.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 3
+    TabOrder = 2
   end
   object PopupMenu1: TPopupMenu
     Left = 456
@@ -52,12 +46,12 @@ object Form1: TForm1
   object Panel2: TPanel
     Align = Client
     Size.Width = 749.000000000000000000
-    Size.Height = 627.000000000000000000
+    Size.Height = 651.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 7
+    TabOrder = 6
     object Panel1: TPanel
       Align = Bottom
-      Position.Y = 507.000000000000000000
+      Position.Y = 531.000000000000000000
       Size.Width = 749.000000000000000000
       Size.Height = 120.000000000000000000
       Size.PlatformDefault = False
@@ -77,14 +71,15 @@ object Form1: TForm1
         OnChange = TreeView1Change
       end
     end
-    object ImageViewer1: TImageViewer
+    object FramedVertScrollBox1: TFramedVertScrollBox
       Align = Client
       Size.Width = 749.000000000000000000
-      Size.Height = 507.000000000000000000
+      Size.Height = 531.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
+      OnVScrollChange = TreeView1Change
       Viewport.Width = 745.000000000000000000
-      Viewport.Height = 503.000000000000000000
+      Viewport.Height = 527.000000000000000000
     end
   end
 end
