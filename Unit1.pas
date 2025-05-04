@@ -19,6 +19,7 @@ type
     TrackBar1: TTrackBar;
     Panel2: TPanel;
     FramedVertScrollBox1: TFramedVertScrollBox;
+    StyleBook1: TStyleBook;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
   private
@@ -48,7 +49,7 @@ var
   option: TSearchOption;
   X, Y, tmp: Single;
 begin
-  if (depth = 0) or (Pos('.', dir.Text) > 0) then
+  if depth = 0 then
     Exit;
   option := TSearchOption.soTopDirectoryOnly;
   for var item in TDirectory.GetDirectories(dir.TagString, '*', option) do
@@ -129,32 +130,22 @@ begin
     r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
   end;
   with FramedVertScrollBox1 do
-  begin
-    Canvas.BeginScene;
-    try
-      Canvas.DrawBitmap(Image1.Bitmap, r1, r2, 1, true);
-    finally
-      Canvas.EndScene;
-    end;
-  end;
+    if Canvas.BeginScene then
+      try
+        Canvas.IntersectClipRect(r2);
+        Canvas.DrawBitmap(Image1.Bitmap, r1, r2, 1, true);
+      finally
+        Canvas.EndScene;
+      end;
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject);
 var
   item: TTreeViewItem;
 begin
-  if ExtractFileExt(TreeView1.Selected.Text) <> '' then
-    Exit;
-  with FramedVertScrollBox1 do
-  begin
-    Canvas.BeginScene;
-    try
-      Canvas.Clear(TAlphaColors.Black);
-    finally
-      Canvas.EndScene;
-    end;
-  end;
   item := TreeView1.Selected;
+  if not Assigned(item) or (ExtractFileExt(item.Text) <> '') then
+    Exit;
   item.BeginUpdate;
   for var i := item.Count - 1 downto 0 do
     item.Items[i].Free;
