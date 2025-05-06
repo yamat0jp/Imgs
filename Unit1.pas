@@ -29,6 +29,7 @@ type
     procedure TreeView1Change(Sender: TObject);
     procedure FramedVertScrollBox1Paint(Sender: TObject; Canvas: TCanvas;
       const ARect: TRectF);
+    procedure FramedVertScrollBox1Resize(Sender: TObject);
   private
     { private éŒ¾ }
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
@@ -49,6 +50,7 @@ uses System.IOUtils, System.Threading;
 
 var
   max: Single;
+  reload: Boolean;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 var
@@ -116,10 +118,26 @@ end;
 procedure TForm1.FramedVertScrollBox1Paint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
 begin
-  if Assigned(Sender) then
-    TreeView1Change(Sender)
-  else
+  if not Assigned(Sender) then
     ImageList1.Draw(Canvas, ARect, ImageList1.Count - 1, 1);
+end;
+
+procedure TForm1.FramedVertScrollBox1Resize(Sender: TObject);
+var
+  X, Y, tmp: Single;
+begin
+  if Assigned(TreeView1.Selected) then
+  begin
+    reload := false;
+    X := 10;
+    Y := 10;
+    for var i := 0 to TreeView1.Selected.Count - 1 do
+    begin
+      tmp := Main(TreeView1.Selected.Items[i].TagString, X, Y);
+      if tmp > max then
+        max := tmp;
+    end;
+  end;
 end;
 
 function TForm1.Main(FileName: string; var X, Y: Single): Single;
@@ -144,13 +162,14 @@ begin
     Y := max;
     r2 := TRectF.Create(X, Y, r1.Width + X, r1.Height + Y);
   end;
-  with ImageList1.Source.Add do
-  begin
-    Name := FileName;
-    DisplayName := ExtractFileName(FileName);
-    MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, a, a, true);
-  end;
-  ImageList1.Destination.Add.Layers.Add.Name := FileName;
+  if reload then
+    with ImageList1.Source.Add do
+    begin
+      Name := FileName;
+      DisplayName := ExtractFileName(FileName);
+      MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, a, a, true);
+      ImageList1.Destination.Add.Layers.Add.Name := FileName;
+    end;
   with FramedVertScrollBox1 do
     if Canvas.BeginScene then
       try
@@ -173,6 +192,7 @@ begin
   item.EndUpdate;
   ImageList1.Source.Clear;
   ImageList1.Destination.Clear;
+  reload := true;
   AddDir(item);
   item.Expand;
 end;
