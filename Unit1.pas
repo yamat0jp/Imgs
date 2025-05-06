@@ -51,6 +51,8 @@ uses System.IOUtils, System.Threading;
 var
   max: Single;
   reload: Boolean;
+  exts: TArray<string> = ['.jpg', '.jpeg', '.bmp', '.tif', '.tiff',
+    '.png', '.gif'];
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 var
@@ -74,8 +76,7 @@ begin
   max := Y;
   for var item in TDirectory.GetFiles(dir.TagString, '*.*', option) do
   begin
-    if not Ext(ExtractFileExt(item), ['.jpg', '.jpeg', '.bmp', '.tif', '.tiff',
-      '.png', '.gif']) then
+    if not Ext(ExtractFileExt(item), exts) then
       continue;
     Child := TTreeViewItem.Create(dir);
     Child.Text := ExtractFileName(item);
@@ -125,6 +126,7 @@ end;
 procedure TForm1.FramedVertScrollBox1Resize(Sender: TObject);
 var
   X, Y, tmp: Single;
+  s: string;
 begin
   if Assigned(TreeView1.Selected) then
   begin
@@ -133,9 +135,13 @@ begin
     Y := 10;
     for var i := 0 to TreeView1.Selected.Count - 1 do
     begin
-      tmp := Main(TreeView1.Selected.Items[i].TagString, X, Y);
-      if tmp > max then
-        max := tmp;
+      s := TreeView1.Selected.Items[i].TagString
+      if Ext(s, exts) then
+      begin
+        tmp := Main(s, X, Y);
+        if tmp > max then
+          max := tmp;
+      end;
     end;
   end;
 end;
@@ -167,7 +173,8 @@ begin
     begin
       Name := FileName;
       DisplayName := ExtractFileName(FileName);
-      MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, a, a, true);
+      MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, r1.Width,
+        r1.Height, false);
       ImageList1.Destination.Add.Layers.Add.Name := FileName;
     end;
   with FramedVertScrollBox1 do
