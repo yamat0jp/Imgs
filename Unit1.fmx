@@ -14,8 +14,7 @@ object Form1: TForm1
   Top = 360
   DesignerMasterStyle = 0
   object TreeView1: TTreeView
-    Align = Right
-    Position.X = 749.000000000000000000
+    Align = Left
     Size.Width = 297.000000000000000000
     Size.Height = 651.000000000000000000
     Size.PlatformDefault = False
@@ -36,20 +35,12 @@ object Form1: TForm1
     Left = 456
     Top = 136
   end
-  object Image1: TImage
-    MultiResBitmap = <
-      item
-      end>
-    Position.X = 408.000000000000000000
-    Position.Y = 120.000000000000000000
-    Visible = False
-  end
   object Panel2: TPanel
     Align = Client
     Size.Width = 749.000000000000000000
     Size.Height = 651.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 6
+    TabOrder = 5
     object Panel1: TPanel
       Align = Bottom
       Position.Y = 531.000000000000000000
@@ -69,6 +60,7 @@ object Form1: TForm1
         Size.PlatformDefault = False
         TabOrder = 0
         Value = 1.000000000000000000
+        OnTracking = TreeView1Change
       end
     end
     object FramedVertScrollBox1: TFramedVertScrollBox
@@ -77,6 +69,7 @@ object Form1: TForm1
       Size.Height = 531.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
+      OnPaint = FramedVertScrollBox1Paint
       OnVScrollChange = TreeView1Change
       Viewport.Width = 745.000000000000000000
       Viewport.Height = 527.000000000000000000
@@ -30826,5 +30819,19 @@ object Form1: TForm1
       end>
     Left = 584
     Top = 136
+  end
+  object Glyph1: TGlyph
+    Position.X = 368.000000000000000000
+    Position.Y = 256.000000000000000000
+    Size.Width = 49.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    Images = ImageList1
+  end
+  object ImageList1: TImageList
+    Source = <>
+    Destination = <>
+    Left = 272
+    Top = 128
   end
 end

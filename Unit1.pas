@@ -7,21 +7,28 @@ uses
   System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.Controls.Presentation, FMX.StdCtrls, FMX.Menus, FMX.Layouts, FMX.TreeView,
-  FMX.Objects, FMX.ExtCtrls;
+  FMX.Objects, FMX.ExtCtrls, System.ImageList, FMX.ImgList, FMX.ListView.Types,
+  FMX.ListView.Appearances, FMX.ListView.Adapters.Base, FMX.ListView,
+  FMX.Bind.GenData, System.Rtti, System.Bindings.Outputs, FMX.Bind.Editors,
+  Data.Bind.EngExt, FMX.Bind.DBEngExt, Data.Bind.Components,
+  Data.Bind.ObjectScope, Data.Bind.GenData, FMX.ListBox;
 
 type
   TForm1 = class(TForm)
     TreeView1: TTreeView;
     PopupMenu1: TPopupMenu;
     StatusBar1: TStatusBar;
-    Image1: TImage;
     Panel1: TPanel;
     TrackBar1: TTrackBar;
     Panel2: TPanel;
     FramedVertScrollBox1: TFramedVertScrollBox;
     StyleBook1: TStyleBook;
+    ImageList1: TImageList;
+    Glyph1: TGlyph;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
+    procedure FramedVertScrollBox1Paint(Sender: TObject; Canvas: TCanvas;
+      const ARect: TRectF);
   private
     { private éŒ¾ }
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
@@ -74,7 +81,7 @@ begin
     if depth = 2 then
     begin
       tmp := Main(item, X, Y);
-      if tmp > max then
+      if max < tmp then
         max := tmp;
     end;
   end;
@@ -106,20 +113,28 @@ begin
   TreeView1.AddObject(Node);
 end;
 
+procedure TForm1.FramedVertScrollBox1Paint(Sender: TObject; Canvas: TCanvas;
+  const ARect: TRectF);
+begin
+  if Assigned(Sender) then
+    TreeView1Change(Sender)
+  else
+    ImageList1.Draw(Canvas, ARect, ImageList1.Count - 1, 1);
+end;
+
 function TForm1.Main(FileName: string; var X, Y: Single): Single;
 var
-  r1, r2: TRectF;
   a: Single;
+  r1, r2: TRectF;
 begin
   if Y > FramedVertScrollBox1.Height then
     Exit(0.0);
   result := 0.0;
   a := 100 + TrackBar1.Value * 50;
-  r1 := Image1.Bitmap.BoundsF;
-  Image1.Bitmap.LoadThumbnailFromFile(FileName, a, a, false);
+  r1 := TRectF.Create(X, Y, a + X, a + Y);
   if r1.Width + X < FramedVertScrollBox1.Width then
   begin
-    r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
+    r2 := TRectF.Create(X, Y, r1.Width + X, r1.Height + Y);
     X := r1.Width + X + 10;
     result := Y + r1.Height + 10;
   end
@@ -127,13 +142,19 @@ begin
   begin
     X := 10;
     Y := max;
-    r2 := RectF(X, Y, r1.Width + X, r1.Height + Y);
+    r2 := TRectF.Create(X, Y, r1.Width + X, r1.Height + Y);
   end;
+  with ImageList1.Source.Add do
+  begin
+    Name := FileName;
+    DisplayName := ExtractFileName(FileName);
+    MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, a, a, true);
+  end;
+  ImageList1.Destination.Add.Layers.Add.Name := FileName;
   with FramedVertScrollBox1 do
     if Canvas.BeginScene then
       try
-        Canvas.IntersectClipRect(r2);
-        Canvas.DrawBitmap(Image1.Bitmap, r1, r2, 1, true);
+        FramedVertScrollBox1Paint(nil, Canvas, r2);
       finally
         Canvas.EndScene;
       end;
@@ -150,6 +171,8 @@ begin
   for var i := item.Count - 1 downto 0 do
     item.Items[i].Free;
   item.EndUpdate;
+  ImageList1.Source.Clear;
+  ImageList1.Destination.Clear;
   AddDir(item);
   item.Expand;
 end;
