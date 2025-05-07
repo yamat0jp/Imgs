@@ -24,16 +24,16 @@ type
     FramedVertScrollBox1: TFramedVertScrollBox;
     StyleBook1: TStyleBook;
     ImageList1: TImageList;
+    Image1: TImage;
     Glyph1: TGlyph;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
-    procedure FramedVertScrollBox1Paint(Sender: TObject; Canvas: TCanvas;
+    procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
       const ARect: TRectF);
-    procedure FramedVertScrollBox1Resize(Sender: TObject);
   private
     { private êÈåæ }
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
-    function Main(FileName: string; var X, Y: Single): Single;
+    procedure Main(FileName: string; var X, Y: Single);
     function Ext(str: string; args: array of string): Boolean;
   public
     { public êÈåæ }
@@ -48,17 +48,18 @@ implementation
 
 uses System.IOUtils, System.Threading;
 
-var
-  max: Single;
-  reload: Boolean;
+const
   exts: TArray<string> = ['.jpg', '.jpeg', '.bmp', '.tif', '.tiff',
     '.png', '.gif'];
+
+var
+  max: Single;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 var
   Child: TTreeViewItem;
   option: TSearchOption;
-  X, Y, tmp: Single;
+  X, Y: Single;
 begin
   if depth = 0 then
     Exit;
@@ -73,20 +74,15 @@ begin
   end;
   X := 10;
   Y := 10;
-  max := Y;
-  for var item in TDirectory.GetFiles(dir.TagString, '*.*', option) do
+  for var s in TDirectory.GetFiles(dir.TagString, '*.*', option) do
   begin
-    if not Ext(ExtractFileExt(item), exts) then
+    if not Ext(ExtractFileExt(s), exts) then
       continue;
     Child := TTreeViewItem.Create(dir);
-    Child.Text := ExtractFileName(item);
+    Child.Text := ExtractFileName(s);
     dir.AddObject(Child);
     if depth = 2 then
-    begin
-      tmp := Main(item, X, Y);
-      if max < tmp then
-        max := tmp;
-    end;
+      Main(s, X, Y);
   end;
 end;
 
@@ -116,74 +112,72 @@ begin
   TreeView1.AddObject(Node);
 end;
 
-procedure TForm1.FramedVertScrollBox1Paint(Sender: TObject; Canvas: TCanvas;
+procedure TForm1.Image1Paint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
-begin
-  if not Assigned(Sender) then
-    ImageList1.Draw(Canvas, ARect, ImageList1.Count - 1, 1);
-end;
-
-procedure TForm1.FramedVertScrollBox1Resize(Sender: TObject);
 var
-  X, Y, tmp: Single;
-  s: string;
+  X, Y, max: Single;
+  r: TRectF;
+  rects: TArray<TRectF>;
 begin
-  if Assigned(TreeView1.Selected) then
+  X := 10;
+  Y := 10;
+  max := 0.0;
+  rects := [];
+  for var i := 0 to ImageList1.Destination.Count - 1 do
   begin
-    reload := false;
-    X := 10;
-    Y := 10;
-    for var i := 0 to TreeView1.Selected.Count - 1 do
+    r := TRectF.Create(X, Y, X + Glyph1.Width, Y + Glyph1.Height);
+    if r.Bottom > max then
+      max := r.Bottom;
+    if r.Right < FramedVertScrollBox1.Width then
+      X := r.Right + 10
+    else
     begin
-      s := TreeView1.Selected.Items[i].TagString
-      if Ext(s, exts) then
-      begin
-        tmp := Main(s, X, Y);
-        if tmp > max then
-          max := tmp;
-      end;
+      r := TRectF.Create(10, max + 10, 10 + Glyph1.Width,
+        max + 10 + Glyph1.Height);
+      X := r.Right + 10;
+      Y := max + 10;
     end;
+    rects := rects + [r];
   end;
+  if FramedVertScrollBox1.Height < max then
+    Image1.Height := max;
+  for var i := 0 to High(rects) do
+    ImageList1.Draw(Canvas, rects[i], i, 1);
+  Finalize(rects);
 end;
 
-function TForm1.Main(FileName: string; var X, Y: Single): Single;
+procedure TForm1.Main(FileName: string; var X, Y: Single);
 var
   a: Single;
-  r1, r2: TRectF;
+  r: TRectF;
 begin
-  if Y > FramedVertScrollBox1.Height then
-    Exit(0.0);
-  result := 0.0;
   a := 100 + TrackBar1.Value * 50;
-  r1 := TRectF.Create(X, Y, a + X, a + Y);
-  if r1.Width + X < FramedVertScrollBox1.Width then
+  with ImageList1.Source.Add do
   begin
-    r2 := TRectF.Create(X, Y, r1.Width + X, r1.Height + Y);
-    X := r1.Width + X + 10;
-    result := Y + r1.Height + 10;
-  end
-  else
-  begin
-    X := 10;
-    Y := max;
-    r2 := TRectF.Create(X, Y, r1.Width + X, r1.Height + Y);
+    Name := FileName;
+    DisplayName := ExtractFileName(FileName);
+    MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, Glyph1.Width,
+      Glyph1.Height, false);
   end;
-  if reload then
-    with ImageList1.Source.Add do
+  ImageList1.Destination.Add.Layers.Add.Name := FileName;
+  if Image1.BoundsRect.Contains(TPointF.Create(X, Y)) then
+  begin
+    r := TRectF.Create(X, Y, X + Glyph1.Width, Y + Glyph1.Height);
+    Image1.Canvas.BeginScene;
+    ImageList1.Draw(Image1.Canvas, r, ImageList1.Destination.Count - 1);
+    Image1.Canvas.EndScene;
+    if r.Right > Image1.Width then
     begin
-      Name := FileName;
-      DisplayName := ExtractFileName(FileName);
-      MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, r1.Width,
-        r1.Height, false);
-      ImageList1.Destination.Add.Layers.Add.Name := FileName;
+      X := 10;
+      Y := max + 10;
+    end
+    else
+    begin
+      X := r.Right + 10;
+      if max < r.Bottom then
+        max := r.Bottom;
     end;
-  with FramedVertScrollBox1 do
-    if Canvas.BeginScene then
-      try
-        FramedVertScrollBox1Paint(nil, Canvas, r2);
-      finally
-        Canvas.EndScene;
-      end;
+  end;
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject);
@@ -199,9 +193,10 @@ begin
   item.EndUpdate;
   ImageList1.Source.Clear;
   ImageList1.Destination.Clear;
-  reload := true;
   AddDir(item);
   item.Expand;
+  Image1.Height := FramedVertScrollBox1.Height;
+  Image1.Repaint;
 end;
 
 end.
