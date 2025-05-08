@@ -76,7 +76,7 @@ object Form1: TForm1
           item
           end>
         Anchors = [akLeft, akTop, akRight]
-        Size.Width = 745.000000000000000000
+        Size.Width = 1440.000000000000000000
         Size.Height = 527.000000000000000000
         Size.PlatformDefault = False
         OnPaint = Image1Paint
@@ -30827,14 +30827,6 @@ object Form1: TForm1
       end>
     Left = 584
     Top = 136
-  end
-  object Glyph1: TGlyph
-    Position.X = 536.000000000000000000
-    Position.Y = 208.000000000000000000
-    Size.Width = 137.000000000000000000
-    Size.Height = 81.000000000000000000
-    Size.PlatformDefault = False
-    Images = ImageList1
   end
   object ImageList1: TImageList
     Source = <>

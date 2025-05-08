@@ -25,7 +25,6 @@ type
     StyleBook1: TStyleBook;
     ImageList1: TImageList;
     Image1: TImage;
-    Glyph1: TGlyph;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
     procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
@@ -51,9 +50,6 @@ uses System.IOUtils, System.Threading;
 const
   exts: TArray<string> = ['.jpg', '.jpeg', '.bmp', '.tif', '.tiff',
     '.png', '.gif'];
-
-var
-  max: Single;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 var
@@ -118,6 +114,7 @@ var
   X, Y, max: Single;
   r: TRectF;
   rects: TArray<TRectF>;
+  size: TPoint;
 begin
   X := 10;
   Y := 10;
@@ -125,15 +122,16 @@ begin
   rects := [];
   for var i := 0 to ImageList1.Destination.Count - 1 do
   begin
-    r := TRectF.Create(X, Y, X + Glyph1.Width, Y + Glyph1.Height);
+    size.X := 200;
+    size.Y := 100;
+    r := TRectF.Create(X, Y, X + size.X, Y + size.Y);
     if r.Bottom > max then
       max := r.Bottom;
     if r.Right < FramedVertScrollBox1.Width then
       X := r.Right + 10
     else
     begin
-      r := TRectF.Create(10, max + 10, 10 + Glyph1.Width,
-        max + 10 + Glyph1.Height);
+      r := TRectF.Create(10, max + 10, 10 + size.X, max + 10 + size.Y);
       X := r.Right + 10;
       Y := max + 10;
     end;
@@ -149,35 +147,15 @@ end;
 procedure TForm1.Main(FileName: string; var X, Y: Single);
 var
   a: Single;
-  r: TRectF;
 begin
   a := 100 + TrackBar1.Value * 50;
   with ImageList1.Source.Add do
   begin
     Name := FileName;
     DisplayName := ExtractFileName(FileName);
-    MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, Glyph1.Width,
-      Glyph1.Height, false);
+    MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, 200, 100, false);
   end;
   ImageList1.Destination.Add.Layers.Add.Name := FileName;
-  if Image1.BoundsRect.Contains(TPointF.Create(X, Y)) then
-  begin
-    r := TRectF.Create(X, Y, X + Glyph1.Width, Y + Glyph1.Height);
-    Image1.Canvas.BeginScene;
-    ImageList1.Draw(Image1.Canvas, r, ImageList1.Destination.Count - 1);
-    Image1.Canvas.EndScene;
-    if r.Right > Image1.Width then
-    begin
-      X := 10;
-      Y := max + 10;
-    end
-    else
-    begin
-      X := r.Right + 10;
-      if max < r.Bottom then
-        max := r.Bottom;
-    end;
-  end;
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject);
