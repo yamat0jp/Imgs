@@ -25,6 +25,7 @@ type
     StyleBook1: TStyleBook;
     ImageList1: TImageList;
     Image1: TImage;
+    Image2: TImage;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
     procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
@@ -122,25 +123,30 @@ begin
   rects := [];
   for var i := 0 to ImageList1.Destination.Count - 1 do
   begin
-    size.X := 200;
-    size.Y := 100;
+    size.X := ImageList1.Source.Items[i].MultiResBitmap.Bitmaps[1].Width;
+    size.Y := ImageList1.Source.Items[i].MultiResBitmap.Bitmaps[1].Height;
     r := TRectF.Create(X, Y, X + size.X, Y + size.Y);
-    if r.Bottom > max then
-      max := r.Bottom;
     if r.Right < FramedVertScrollBox1.Width then
       X := r.Right + 10
     else
     begin
+      X := 10;
       r := TRectF.Create(10, max + 10, 10 + size.X, max + 10 + size.Y);
-      X := r.Right + 10;
       Y := max + 10;
     end;
+    if r.Bottom > max then
+      max := r.Bottom;
     rects := rects + [r];
   end;
   if FramedVertScrollBox1.Height < max then
     Image1.Height := max;
   for var i := 0 to High(rects) do
+  begin
     ImageList1.Draw(Canvas, rects[i], i, 1);
+    Canvas.DrawRect(rects[i], 1);
+    Canvas.FillText(rects[i], TreeView1.Selected.Items[i].Text, true, 1, [],
+      TTextAlign.Center);
+  end;
   Finalize(rects);
 end;
 
@@ -149,11 +155,12 @@ var
   a: Single;
 begin
   a := 100 + TrackBar1.Value * 50;
+  Image2.Bitmap.LoadThumbnailFromFile(FileName, a, a);
   with ImageList1.Source.Add do
   begin
     Name := FileName;
     DisplayName := ExtractFileName(FileName);
-    MultiResBitmap.Add.Bitmap.LoadThumbnailFromFile(FileName, 200, 100, false);
+    MultiResBitmap.Add.Bitmap.Assign(Image2.Bitmap);
   end;
   ImageList1.Destination.Add.Layers.Add.Name := FileName;
 end;
