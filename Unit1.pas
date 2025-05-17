@@ -49,7 +49,7 @@ implementation
 uses System.IOUtils, System.Threading, CCR.Exif;
 
 const
-  exts: TArray<string> = ['.jpg', '.jpeg'];
+  exts: TArray<string> = ['.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'];
 
 var
   bmps: TArray<TBitmap>;
@@ -139,11 +139,8 @@ begin
   for var bmp in bmps do
   begin
     if X + bmp.Width < FramedVertScrollBox1.Width then
-    begin
       Canvas.DrawBitmap(bmp, bmp.BoundsF, TRectF.Create(X, Y, X + bmp.Width,
-        Y + bmp.Height), 1, true);
-      X := X + bmp.Width + 10;
-    end
+        Y + bmp.Height), 1, true)
     else
     begin
       X := 10;
@@ -151,6 +148,7 @@ begin
       Canvas.DrawBitmap(bmp, bmp.BoundsF, TRectF.Create(X, Y, X + bmp.Width,
         Y + bmp.Height), 1, true);
     end;
+    X := X + bmp.Width + 10;
     if Y + bmp.Height > max then
       max := Y + bmp.Height;
   end;
@@ -176,7 +174,7 @@ begin
   else
   begin
     bmp := TBitmap.Create;
-    bmp.LoadThumbnailFromFile(FileName, 100, 100, true);
+    bmp.LoadThumbnailFromFile(FileName, 200, 100, true);
     bmps := bmps + [bmp];
   end;
 end;
@@ -199,7 +197,7 @@ begin
   item.Expand;
   Image1.Repaint;
   FramedVertScrollBox1.RecalcSize;
-  FramedVertScrollBox1.ViewportPosition:=TPointF.Create(0,0);
+  FramedVertScrollBox1.ViewportPosition := TPointF.Create(0, 0);
 end;
 
 end.
