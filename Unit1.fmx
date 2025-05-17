@@ -76,7 +76,7 @@ object Form1: TForm1
           item
           end>
         Anchors = [akLeft, akTop, akRight]
-        Size.Width = 4220.000000000000000000
+        Size.Width = 9780.000000000000000000
         Size.Height = 527.000000000000000000
         Size.PlatformDefault = False
         OnPaint = Image1Paint
@@ -30832,14 +30832,8 @@ object Form1: TForm1
     MultiResBitmap = <
       item
       end>
-    Position.X = 552.000000000000000000
-    Position.Y = 112.000000000000000000
+    Position.X = 96.000000000000000000
+    Position.Y = 224.000000000000000000
     Visible = False
-  end
-  object ImageList1: TImageList
-    Source = <>
-    Destination = <>
-    Left = 272
-    Top = 128
   end
 end

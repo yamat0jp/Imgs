@@ -23,7 +23,6 @@ type
     Panel2: TPanel;
     FramedVertScrollBox1: TFramedVertScrollBox;
     StyleBook1: TStyleBook;
-    ImageList1: TImageList;
     Image1: TImage;
     Image2: TImage;
     procedure FormCreate(Sender: TObject);
@@ -34,6 +33,7 @@ type
     { private êÈåæ }
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
     procedure Main(FileName: string; var X, Y: Single);
+    function GetSize(FileName: string; var Width, Height: Word): Boolean;
     function Ext(str: string; args: array of string): Boolean;
   public
     { public êÈåæ }
@@ -46,11 +46,13 @@ implementation
 
 {$R *.fmx}
 
-uses System.IOUtils, System.Threading;
+uses System.IOUtils, System.Threading, CCR.Exif;
 
 const
-  exts: TArray<string> = ['.jpg', '.jpeg', '.bmp', '.tif', '.tiff',
-    '.png', '.gif'];
+  exts: TArray<string> = ['.jpg', '.jpeg'];
+
+var
+  bmps: TArray<TBitmap>;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 var
@@ -109,60 +111,74 @@ begin
   TreeView1.AddObject(Node);
 end;
 
+function TForm1.GetSize(FileName: string; var Width, Height: Word): Boolean;
+var
+  Data: TExifData;
+begin
+  Data := TExifData.Create;
+  try
+    Data.LoadFromGraphic(FileName);
+    result := Data.Empty;
+    Width := Data.ExifImageWidth;
+    Height := Data.ExifImageHeight;
+    if Width = 0 then
+      result := false;
+  finally
+    Data.Free;
+  end;
+end;
+
 procedure TForm1.Image1Paint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
 var
   X, Y, max: Single;
-  r: TRectF;
-  rects: TArray<TRectF>;
-  size: TPoint;
 begin
   X := 10;
   Y := 10;
   max := 0.0;
-  rects := [];
-  for var i := 0 to ImageList1.Destination.Count - 1 do
+  for var bmp in bmps do
   begin
-    size.X := ImageList1.Source.Items[i].MultiResBitmap.Bitmaps[1].Width;
-    size.Y := ImageList1.Source.Items[i].MultiResBitmap.Bitmaps[1].Height;
-    r := TRectF.Create(X, Y, X + size.X, Y + size.Y);
-    if r.Right < FramedVertScrollBox1.Width then
-      X := r.Right + 10
+    if X + bmp.Width < FramedVertScrollBox1.Width then
+    begin
+      Canvas.DrawBitmap(bmp, bmp.BoundsF, TRectF.Create(X, Y, X + bmp.Width,
+        Y + bmp.Height), 1, true);
+      X := X + bmp.Width + 10;
+    end
     else
     begin
       X := 10;
-      r := TRectF.Create(10, max + 10, 10 + size.X, max + 10 + size.Y);
       Y := max + 10;
+      Canvas.DrawBitmap(bmp, bmp.BoundsF, TRectF.Create(X, Y, X + bmp.Width,
+        Y + bmp.Height), 1, true);
     end;
-    if r.Bottom > max then
-      max := r.Bottom;
-    rects := rects + [r];
+    if Y + bmp.Height > max then
+      max := Y + bmp.Height;
   end;
   if FramedVertScrollBox1.Height < max then
-    Image1.Height := max;
-  for var i := 0 to High(rects) do
-  begin
-    ImageList1.Draw(Canvas, rects[i], i, 1);
-    Canvas.DrawRect(rects[i], 1);
-    Canvas.FillText(rects[i], TreeView1.Selected.Items[i].Text, true, 1, [],
-      TTextAlign.Center);
-  end;
-  Finalize(rects);
+    Image1.Height := max
+  else
+    Image1.Height := FramedVertScrollBox1.Height;
 end;
 
 procedure TForm1.Main(FileName: string; var X, Y: Single);
 var
-  a: Single;
+  wd, wid, hei: Word;
+  bmp: TBitmap;
 begin
-  a := 100 + TrackBar1.Value * 50;
-  Image2.Bitmap.LoadThumbnailFromFile(FileName, a, a);
-  with ImageList1.Source.Add do
+  if GetSize(FileName, wd, hei) then
   begin
-    Name := FileName;
-    DisplayName := ExtractFileName(FileName);
-    MultiResBitmap.Add.Bitmap.Assign(Image2.Bitmap);
+    wid := 100 + Round(TrackBar1.Value) * 50;
+    hei := wid * Round(hei / wd);
+    bmp := TBitmap.Create;
+    bmp.LoadThumbnailFromFile(FileName, wid, hei, false);
+    bmps := bmps + [bmp];
+  end
+  else
+  begin
+    bmp := TBitmap.Create;
+    bmp.LoadThumbnailFromFile(FileName, 100, 100, true);
+    bmps := bmps + [bmp];
   end;
-  ImageList1.Destination.Add.Layers.Add.Name := FileName;
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject);
@@ -176,12 +192,14 @@ begin
   for var i := item.Count - 1 downto 0 do
     item.Items[i].Free;
   item.EndUpdate;
-  ImageList1.Source.Clear;
-  ImageList1.Destination.Clear;
+  for var bmp in bmps do
+    bmp.Free;
+  Finalize(bmps);
   AddDir(item);
   item.Expand;
-  Image1.Height := FramedVertScrollBox1.Height;
   Image1.Repaint;
+  FramedVertScrollBox1.RecalcSize;
+  FramedVertScrollBox1.ViewportPosition:=TPointF.Create(0,0);
 end;
 
 end.
