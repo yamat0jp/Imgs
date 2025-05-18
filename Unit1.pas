@@ -29,6 +29,7 @@ type
     procedure TreeView1Change(Sender: TObject);
     procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
       const ARect: TRectF);
+    procedure FormDestroy(Sender: TObject);
   private
     { private êÈåæ }
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
@@ -102,6 +103,10 @@ begin
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
   Node := TTreeViewItem.Create(TreeView1);
+  Node.Text := TPath.GetDesktopPath;
+  Node.TagString := Node.Text;
+  TreeView1.AddObject(Node);
+  Node := TTreeViewItem.Create(TreeView1);
   Node.Text := TPath.GetDocumentsPath;
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
@@ -109,6 +114,17 @@ begin
   Node.Text := TPath.GetDownloadsPath;
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
+  Node := TTreeViewItem.Create(TreeView1);
+  Node.Text := 'C:\';
+  Node.TagString := Node.Text;
+  TreeView1.AddObject(Node);
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  for var bmp in bmps do
+    bmp.Free;
+  Finalize(bmps);
 end;
 
 function TForm1.GetSize(FileName: string; var Width, Height: Word): Boolean;
