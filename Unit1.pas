@@ -170,7 +170,7 @@ begin
     if i mod 5 = 0 then
       Image1.Repaint;
   end;
-  flist.Clear;
+  Image1.Repaint;
 end;
 
 procedure TForm1.Main(FileName: string; var X, Y: Single);
@@ -200,14 +200,11 @@ begin
     bmp.Free;
   bmps := [];
   if Assigned(task) then
-  begin
     task.Cancel;
-    flist.Clear;
-  end;
+  flist.Clear;
   item.Expand;
   AddDir(item);
   task:=TTask.Run(LoadFLISTdata);
-  Image1.Repaint;
   FramedVertScrollBox1.RecalcSize;
   FramedVertScrollBox1.ViewportPosition := TPointF.Create(0, 0);
 end;
