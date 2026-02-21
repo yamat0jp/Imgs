@@ -32,9 +32,11 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     { private êÈåæ }
+    flist: TStringList;
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
     procedure Main(FileName: string; var X, Y: Single);
     function Ext(str: string; args: array of string): Boolean;
+    procedure LoadFLISTdata;
   public
     { public êÈåæ }
   end;
@@ -53,12 +55,13 @@ const
 
 var
   bmps: TArray<TBitmap>;
+  [weak]
+  task: ITask;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 var
   Child: TTreeViewItem;
   option: TSearchOption;
-  X, Y: Single;
 begin
   if depth = 0 then
     Exit;
@@ -71,8 +74,6 @@ begin
     dir.AddObject(Child);
     AddDir(Child, depth - 1);
   end;
-  X := 10;
-  Y := 10;
   for var s in TDirectory.GetFiles(dir.TagString, '*.*', option) do
   begin
     if not Ext(ExtractFileExt(s), exts) then
@@ -81,7 +82,7 @@ begin
     Child.Text := ExtractFileName(s);
     dir.AddObject(Child);
     if depth = 2 then
-      Main(s, X, Y);
+      flist.Add(s);
   end;
 end;
 
@@ -116,6 +117,7 @@ begin
   Node := TTreeViewItem.Create(TreeView1);
   Node.Text := 'C:\';
   Node.TagString := Node.Text;
+  flist := TStringList.Create;
   TreeView1.AddObject(Node);
 end;
 
@@ -123,7 +125,7 @@ procedure TForm1.FormDestroy(Sender: TObject);
 begin
   for var bmp in bmps do
     bmp.Free;
-  Finalize(bmps);
+  flist.Free;
 end;
 
 procedure TForm1.Image1Paint(Sender: TObject; Canvas: TCanvas;
@@ -156,6 +158,21 @@ begin
     Image1.Height := FramedVertScrollBox1.Height;
 end;
 
+procedure TForm1.LoadFLISTdata;
+var
+  X, Y: Single;
+begin
+  X := 10;
+  Y := 10;
+  for var i := 0 to flist.Count - 1 do
+  begin
+    Main(flist[i], X, Y);
+    if i mod 5 = 0 then
+      Image1.Repaint;
+  end;
+  flist.Clear;
+end;
+
 procedure TForm1.Main(FileName: string; var X, Y: Single);
 var
   wid, hei: Word;
@@ -163,7 +180,7 @@ var
 begin
   wid := 100 + Round(TrackBar1.Value) * 50;
   hei := wid;
-  bmp := TBitmap.Create;
+  bmp := TBitmap.Create(wid, hei);
   bmp.LoadThumbnailFromFile(FileName, wid, hei, false);
   bmps := bmps + [bmp];
 end;
@@ -181,9 +198,15 @@ begin
   item.EndUpdate;
   for var bmp in bmps do
     bmp.Free;
-  Finalize(bmps);
-  AddDir(item);
+  bmps := [];
+  if Assigned(task) then
+  begin
+    task.Cancel;
+    flist.Clear;
+  end;
   item.Expand;
+  AddDir(item);
+  task:=TTask.Run(LoadFLISTdata);
   Image1.Repaint;
   FramedVertScrollBox1.RecalcSize;
   FramedVertScrollBox1.ViewportPosition := TPointF.Create(0, 0);
