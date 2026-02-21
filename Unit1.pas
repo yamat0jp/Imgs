@@ -34,7 +34,6 @@ type
     { private êÈåæ }
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
     procedure Main(FileName: string; var X, Y: Single);
-    function GetSize(FileName: string; var Width, Height: Word): Boolean;
     function Ext(str: string; args: array of string): Boolean;
   public
     { public êÈåæ }
@@ -47,7 +46,7 @@ implementation
 
 {$R *.fmx}
 
-uses System.IOUtils, System.Threading, CCR.Exif;
+uses System.IOUtils, System.Threading;
 
 const
   exts: TArray<string> = ['.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'];
@@ -127,23 +126,6 @@ begin
   Finalize(bmps);
 end;
 
-function TForm1.GetSize(FileName: string; var Width, Height: Word): Boolean;
-var
-  Data: TExifData;
-begin
-  Data := TExifData.Create;
-  try
-    Data.LoadFromGraphic(FileName);
-    result := Data.Empty;
-    Width := Data.ExifImageWidth;
-    Height := Data.ExifImageHeight;
-    if Width = 0 then
-      result := false;
-  finally
-    Data.Free;
-  end;
-end;
-
 procedure TForm1.Image1Paint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
 var
@@ -176,23 +158,14 @@ end;
 
 procedure TForm1.Main(FileName: string; var X, Y: Single);
 var
-  wd, wid, hei: Word;
+  wid, hei: Word;
   bmp: TBitmap;
 begin
-  if GetSize(FileName, wd, hei) then
-  begin
-    wid := 100 + Round(TrackBar1.Value) * 50;
-    hei := wid * Round(hei / wd);
-    bmp := TBitmap.Create;
-    bmp.LoadThumbnailFromFile(FileName, wid, hei, false);
-    bmps := bmps + [bmp];
-  end
-  else
-  begin
-    bmp := TBitmap.Create;
-    bmp.LoadThumbnailFromFile(FileName, 200, 100, true);
-    bmps := bmps + [bmp];
-  end;
+  wid := 100 + Round(TrackBar1.Value) * 50;
+  hei := wid;
+  bmp := TBitmap.Create;
+  bmp.LoadThumbnailFromFile(FileName, wid, hei, false);
+  bmps := bmps + [bmp];
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject);

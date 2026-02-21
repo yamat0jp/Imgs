@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 400
   Top = 360
-  Caption = 'Imgs Viewer'
+  Caption = 'Imgs Viewer  v1.1.0'
   ClientHeight = 673
   ClientWidth = 1046
   Position = Designed
@@ -77,7 +77,7 @@ object Form1: TForm1
           item
           end>
         Anchors = [akLeft, akTop, akRight]
-        Size.Width = 10475.000000000000000000
+        Size.Width = 11865.000000000000000000
         Size.Height = 527.000000000000000000
         Size.PlatformDefault = False
         OnPaint = Image1Paint
