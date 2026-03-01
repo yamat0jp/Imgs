@@ -25,6 +25,8 @@ type
     StyleBook1: TStyleBook;
     Image1: TImage;
     Image2: TImage;
+    Label1: TLabel;
+    ProgressBar1: TProgressBar;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
     procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
@@ -115,8 +117,6 @@ begin
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
   Node := TTreeViewItem.Create(TreeView1);
-  Node.Text := 'C:\';
-  Node.TagString := Node.Text;
   flist := TStringList.Create;
   TreeView1.AddObject(Node);
 end;
@@ -168,9 +168,13 @@ begin
   begin
     Main(flist[i], X, Y);
     if i mod 5 = 0 then
+    begin
       Image1.Repaint;
+      ProgressBar1.Value := i + 1;
+    end;
   end;
   Image1.Repaint;
+  ProgressBar1.Value := 0;
 end;
 
 procedure TForm1.Main(FileName: string; var X, Y: Single);
@@ -204,7 +208,10 @@ begin
   flist.Clear;
   item.Expand;
   AddDir(item);
-  task:=TTask.Run(LoadFLISTdata);
+  Label1.Text := ' ' + flist.Count.ToString + ' files';
+  ProgressBar1.Value := 0;
+  ProgressBar1.max := flist.Count;
+  task := TTask.Run(LoadFLISTdata);
   FramedVertScrollBox1.RecalcSize;
   FramedVertScrollBox1.ViewportPosition := TPointF.Create(0, 0);
 end;
