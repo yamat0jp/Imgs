@@ -16,10 +16,12 @@ object Form1: TForm1
   DesignerMasterStyle = 0
   object TreeView1: TTreeView
     Align = Left
+    PopupMenu = PopupMenu1
     Size.Width = 297.000000000000000000
     Size.Height = 651.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
+    OnDblClick = TreeView1DblClick
     OnChange = TreeView1Change
     Viewport.Width = 293.000000000000000000
     Viewport.Height = 647.000000000000000000
@@ -48,8 +50,17 @@ object Form1: TForm1
     end
   end
   object PopupMenu1: TPopupMenu
-    Left = 456
-    Top = 136
+    OnPopup = PopupMenu1Popup
+    Left = 192
+    Top = 392
+    object MenuItem1: TMenuItem
+      Action = Action1
+      ImageIndex = -1
+    end
+    object MenuItem2: TMenuItem
+      Action = Action2
+      ImageIndex = -1
+    end
   end
   object Panel2: TPanel
     Align = Client
@@ -92,7 +103,9 @@ object Form1: TForm1
           item
           end>
         Anchors = [akLeft, akTop, akRight]
-        Size.Width = 15340.000000000000000000
+        Position.X = 6.000000000000000000
+        Position.Y = -6.000000000000000000
+        Size.Width = 16035.000000000000000000
         Size.Height = 527.000000000000000000
         Size.PlatformDefault = False
         OnPaint = Image1Paint
@@ -30851,5 +30864,55 @@ object Form1: TForm1
     Position.X = 96.000000000000000000
     Position.Y = 224.000000000000000000
     Visible = False
+  end
+  object MainMenu1: TMainMenu
+    Left = 488
+    Top = 136
+    object MenuItem3: TMenuItem
+      Text = #12501#12449#12452#12523
+      object MenuItem7: TMenuItem
+        Action = FileExit1
+        Locked = True
+        ImageIndex = 43
+      end
+    end
+    object MenuItem4: TMenuItem
+      Text = #12450#12452#12486#12512
+      object MenuItem5: TMenuItem
+        Action = Action1
+        Locked = True
+        ImageIndex = -1
+      end
+      object MenuItem6: TMenuItem
+        Action = Action2
+        Locked = True
+        ImageIndex = -1
+      end
+    end
+  end
+  object ActionList1: TActionList
+    Left = 592
+    Top = 232
+    object Action1: TAction
+      Category = #12450#12452#12486#12512
+      Text = #20840#12390#25240#12426#12383#12383#12416
+      OnExecute = Action1Execute
+    end
+    object FileHideAppOthers1: TFileHideAppOthers
+      Category = #12501#12449#12452#12523
+      Hint = #20182#12434#38750#34920#31034'|'#20182#12398#12377#12409#12390#12398#12450#12503#12522#12465#12540#12471#12519#12531#12434#38750#34920#31034#12395#12375#12414#12377
+      UnsupportedPlatforms = [pfiOS, pfAndroid, pfWinRT]
+    end
+    object FileExit1: TFileExit
+      Category = #12501#12449#12452#12523
+      Hint = #32066#20102'|'#12450#12503#12522#12465#12540#12471#12519#12531#12434#32066#20102#12375#12414#12377
+      ImageIndex = 43
+      ImageIndex = 43
+    end
+    object Action2: TAction
+      Category = #12450#12452#12486#12512
+      Text = #12463#12522#12483#12503#12508#12540#12489#12395#12467#12500#12540
+      OnExecute = Action2Execute
+    end
   end
 end

@@ -11,7 +11,8 @@ uses
   FMX.ListView.Appearances, FMX.ListView.Adapters.Base, FMX.ListView,
   FMX.Bind.GenData, System.Rtti, System.Bindings.Outputs, FMX.Bind.Editors,
   Data.Bind.EngExt, FMX.Bind.DBEngExt, Data.Bind.Components,
-  Data.Bind.ObjectScope, Data.Bind.GenData, FMX.ListBox;
+  Data.Bind.ObjectScope, Data.Bind.GenData, FMX.ListBox, System.Actions,
+  FMX.ActnList, FMX.StdActns;
 
 type
   TForm1 = class(TForm)
@@ -27,18 +28,35 @@ type
     Image2: TImage;
     Label1: TLabel;
     ProgressBar1: TProgressBar;
+    MenuItem2: TMenuItem;
+    MenuItem1: TMenuItem;
+    MainMenu1: TMainMenu;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    ActionList1: TActionList;
+    Action1: TAction;
+    FileHideAppOthers1: TFileHideAppOthers;
+    FileExit1: TFileExit;
+    MenuItem7: TMenuItem;
+    Action2: TAction;
+    MenuItem6: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
     procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
       const ARect: TRectF);
     procedure FormDestroy(Sender: TObject);
+    procedure PopupMenu1Popup(Sender: TObject);
+    procedure Action1Execute(Sender: TObject);
+    procedure Action2Execute(Sender: TObject);
+    procedure TreeView1DblClick(Sender: TObject);
   private
     { private 宣言 }
     flist: TStringList;
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
     procedure Main(FileName: string; var X, Y: Single);
-    function Ext(str: string; args: array of string): Boolean;
     procedure LoadFLISTdata;
+    function IsGraphic(const Text: string): Boolean;
   public
     { public 宣言 }
   end;
@@ -50,22 +68,57 @@ implementation
 
 {$R *.fmx}
 
-uses System.IOUtils, System.Threading;
-
-const
-  exts: TArray<string> = ['.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'];
+uses System.IOUtils, System.Threading, FMX.Platform;
 
 var
   bmps: TArray<TBitmap>;
   [weak]
   task: ITask;
 
+procedure TForm1.Action1Execute(Sender: TObject);
+begin
+  for var i := 0 to TreeView1.Count - 1 do
+    TreeView1.Items[i].CollapseAll;
+end;
+
+procedure TForm1.Action2Execute(Sender: TObject);
+var
+  item: TTreeViewItem;
+  fname: string;
+  bmp: TBitmap;
+  brd: IFMXClipboardService;
+begin
+  item := TreeView1.Selected;
+  fname := TreeView1.Selected.Text;
+  if not IsGraphic(fname) then
+    Exit;
+  while item.ParentItem <> nil do
+  begin
+    item := item.ParentItem;
+    fname := TPath.Combine(item.Text, fname);
+  end;
+  if not TPlatformServices.Current.SupportsPlatformService
+    (IFMXClipboardService, brd) then
+  begin
+    Showmessage('OSが未サポートです');
+    PopupMenu1.Items[1].Enabled := false;
+    Exit;
+  end;
+  bmp := TBitmap.Create;
+  try
+    bmp.LoadFromFile(fname);
+    brd.SetClipboard(bmp);
+  finally
+    bmp.Free;
+  end;
+end;
+
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 var
   Child: TTreeViewItem;
   option: TSearchOption;
 begin
-  if depth = 0 then
+  if (depth = 0) or (dir.TagString = '') then
     Exit;
   option := TSearchOption.soTopDirectoryOnly;
   for var item in TDirectory.GetDirectories(dir.TagString, '*', option) do
@@ -78,7 +131,7 @@ begin
   end;
   for var s in TDirectory.GetFiles(dir.TagString, '*.*', option) do
   begin
-    if not Ext(ExtractFileExt(s), exts) then
+    if not IsGraphic(s) then
       continue;
     Child := TTreeViewItem.Create(dir);
     Child.Text := ExtractFileName(s);
@@ -86,14 +139,12 @@ begin
     if depth = 2 then
       flist.Add(s);
   end;
-end;
-
-function TForm1.Ext(str: string; args: array of string): Boolean;
-begin
-  for var arg in args do
-    if LowerCase(str) = arg then
-      Exit(true);
-  result := false;
+  if dir.Count = 0 then
+  begin
+    Child := TTreeViewItem.Create(dir);
+    Child.Text := 'no Image files';
+    dir.AddObject(Child);
+  end;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -158,6 +209,16 @@ begin
     Image1.Height := FramedVertScrollBox1.Height;
 end;
 
+function TForm1.IsGraphic(const Text: string): Boolean;
+const
+  args: TArray<string> = ['.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'];
+begin
+  for var arg in args do
+    if ExtractFileExt(Text).ToLower = arg then
+      Exit(true);
+  result := false;
+end;
+
 procedure TForm1.LoadFLISTdata;
 var
   X, Y: Single;
@@ -189,6 +250,14 @@ begin
   bmps := bmps + [bmp];
 end;
 
+procedure TForm1.PopupMenu1Popup(Sender: TObject);
+begin
+  if Assigned(TreeView1.Selected) and IsGraphic(TreeView1.Selected.Text) then
+    PopupMenu1.Items[1].Enabled := true
+  else
+    PopupMenu1.Items[1].Enabled := false;
+end;
+
 procedure TForm1.TreeView1Change(Sender: TObject);
 var
   item: TTreeViewItem;
@@ -214,6 +283,12 @@ begin
   task := TTask.Run(LoadFLISTdata);
   FramedVertScrollBox1.RecalcSize;
   FramedVertScrollBox1.ViewportPosition := TPointF.Create(0, 0);
+end;
+
+procedure TForm1.TreeView1DblClick(Sender: TObject);
+begin
+  if IsGraphic(TreeView1.Selected.Text) then
+    TreeView1.Selected:=TreeView1.Selected.ParentItem;
 end;
 
 end.
