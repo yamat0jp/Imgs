@@ -50,6 +50,7 @@ type
     procedure Action1Execute(Sender: TObject);
     procedure Action2Execute(Sender: TObject);
     procedure TreeView1DblClick(Sender: TObject);
+    procedure TrackBar1Tracking(Sender: TObject);
   private
     { private êÈåæ }
     flist: TStringList;
@@ -79,6 +80,7 @@ procedure TForm1.Action1Execute(Sender: TObject);
 begin
   for var i := 0 to TreeView1.Count - 1 do
     TreeView1.Items[i].CollapseAll;
+  TreeView1.Selected := nil;
 end;
 
 procedure TForm1.Action2Execute(Sender: TObject);
@@ -108,7 +110,7 @@ end;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
 const
-  mes = 'no Image files';
+  mes = '(no Image files)';
 var
   Child: TTreeViewItem;
   option: TSearchOption;
@@ -163,9 +165,7 @@ begin
   Node.Text := TPath.GetDownloadsPath;
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
-  Node := TTreeViewItem.Create(TreeView1);
   flist := TStringList.Create;
-  TreeView1.AddObject(Node);
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -250,25 +250,31 @@ begin
     PopupMenu1.Items[1].Enabled := false;
 end;
 
+procedure TForm1.TrackBar1Tracking(Sender: TObject);
+begin
+  for var bmp in bmps do
+    bmp.Free;
+  bmps:=[];
+  LoadFLISTdata;
+end;
+
 procedure TForm1.TreeView1Change(Sender: TObject);
 var
   item: TTreeViewItem;
 begin
   item := TreeView1.Selected;
-  if not Assigned(item) or (ExtractFileExt(item.Text) <> '') then
+  if not Assigned(item) or not DirectoryExists(item.TagString) then
     Exit;
-  item.BeginUpdate;
   for var i := item.Count - 1 downto 0 do
     item.Items[i].Free;
-  item.EndUpdate;
   for var bmp in bmps do
     bmp.Free;
   bmps := [];
   if Assigned(task) then
     task.Cancel;
   flist.Clear;
-  item.Expand;
   AddDir(item);
+  item.Expand;
   Label1.Text := ' ' + flist.Count.ToString + ' files';
   ProgressBar1.Value := 0;
   ProgressBar1.max := flist.Count;
