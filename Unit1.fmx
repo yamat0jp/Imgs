@@ -105,7 +105,7 @@ object Form1: TForm1
         Anchors = [akLeft, akTop, akRight]
         Position.X = 6.000000000000000000
         Position.Y = -6.000000000000000000
-        Size.Width = 16035.000000000000000000
+        Size.Width = 16730.000000000000000000
         Size.Height = 527.000000000000000000
         Size.PlatformDefault = False
         OnPaint = Image1Paint

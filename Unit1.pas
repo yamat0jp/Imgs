@@ -54,7 +54,7 @@ type
     { private êÈåæ }
     flist: TStringList;
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
-    procedure Main(FileName: string; var X, Y: Single);
+    procedure Main(FileName: string);
     procedure LoadFLISTdata;
     function IsGraphic(const Text: string): Boolean;
   public
@@ -83,20 +83,13 @@ end;
 
 procedure TForm1.Action2Execute(Sender: TObject);
 var
-  item: TTreeViewItem;
   fname: string;
   bmp: TBitmap;
   brd: IFMXClipboardService;
 begin
-  item := TreeView1.Selected;
-  fname := TreeView1.Selected.Text;
+  fname := TreeView1.Selected.TagString;
   if not IsGraphic(fname) then
     Exit;
-  while item.ParentItem <> nil do
-  begin
-    item := item.ParentItem;
-    fname := TPath.Combine(item.Text, fname);
-  end;
   if not TPlatformServices.Current.SupportsPlatformService
     (IFMXClipboardService, brd) then
   begin
@@ -114,11 +107,13 @@ begin
 end;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
+const
+  mes = 'no Image files';
 var
   Child: TTreeViewItem;
   option: TSearchOption;
 begin
-  if (depth = 0) or (dir.TagString = '') then
+  if (depth = 0) or (dir.Text = mes) then
     Exit;
   option := TSearchOption.soTopDirectoryOnly;
   for var item in TDirectory.GetDirectories(dir.TagString, '*', option) do
@@ -135,6 +130,7 @@ begin
       continue;
     Child := TTreeViewItem.Create(dir);
     Child.Text := ExtractFileName(s);
+    Child.TagString := s;
     dir.AddObject(Child);
     if depth = 2 then
       flist.Add(s);
@@ -142,7 +138,7 @@ begin
   if dir.Count = 0 then
   begin
     Child := TTreeViewItem.Create(dir);
-    Child.Text := 'no Image files';
+    Child.Text := mes;
     dir.AddObject(Child);
   end;
 end;
@@ -220,14 +216,10 @@ begin
 end;
 
 procedure TForm1.LoadFLISTdata;
-var
-  X, Y: Single;
 begin
-  X := 10;
-  Y := 10;
   for var i := 0 to flist.Count - 1 do
   begin
-    Main(flist[i], X, Y);
+    Main(flist[i]);
     if i mod 5 = 0 then
     begin
       Image1.Repaint;
@@ -238,7 +230,7 @@ begin
   ProgressBar1.Value := 0;
 end;
 
-procedure TForm1.Main(FileName: string; var X, Y: Single);
+procedure TForm1.Main(FileName: string);
 var
   wid, hei: Word;
   bmp: TBitmap;
@@ -288,7 +280,7 @@ end;
 procedure TForm1.TreeView1DblClick(Sender: TObject);
 begin
   if IsGraphic(TreeView1.Selected.Text) then
-    TreeView1.Selected:=TreeView1.Selected.ParentItem;
+    TreeView1.Selected := TreeView1.Selected.ParentItem;
 end;
 
 end.
