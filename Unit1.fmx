@@ -48,9 +48,19 @@ object Form1: TForm1
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
     end
+    object Label2: TLabel
+      Align = Left
+      AutoSize = True
+      Position.X = 220.000000000000000000
+      Size.Width = 165.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = #12463#12522#12483#12503#12508#12540#12489#12395#12467#12500#12540#12373#12428#12414#12375#12383
+      Visible = False
+      TabOrder = 1
+    end
   end
   object PopupMenu1: TPopupMenu
-    OnPopup = PopupMenu1Popup
     Left = 192
     Top = 392
     object MenuItem1: TMenuItem
@@ -59,6 +69,7 @@ object Form1: TForm1
     end
     object MenuItem2: TMenuItem
       Action = Action2
+      Enabled = False
       ImageIndex = -1
     end
   end
@@ -105,7 +116,7 @@ object Form1: TForm1
         Anchors = [akLeft, akTop, akRight]
         Position.X = 6.000000000000000000
         Position.Y = -6.000000000000000000
-        Size.Width = 16730.000000000000000000
+        Size.Width = 17425.000000000000000000
         Size.Height = 527.000000000000000000
         Size.PlatformDefault = False
         OnPaint = Image1Paint
@@ -30885,6 +30896,7 @@ object Form1: TForm1
       end
       object MenuItem6: TMenuItem
         Action = Action2
+        Enabled = False
         Locked = True
         ImageIndex = -1
       end

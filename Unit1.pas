@@ -41,12 +41,12 @@ type
     MenuItem7: TMenuItem;
     Action2: TAction;
     MenuItem6: TMenuItem;
+    Label2: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
     procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
       const ARect: TRectF);
     procedure FormDestroy(Sender: TObject);
-    procedure PopupMenu1Popup(Sender: TObject);
     procedure Action1Execute(Sender: TObject);
     procedure Action2Execute(Sender: TObject);
     procedure TreeView1DblClick(Sender: TObject);
@@ -103,6 +103,13 @@ begin
   try
     bmp.LoadFromFile(fname);
     brd.SetClipboard(bmp);
+    TTask.Run(
+      procedure
+      begin
+        Label2.Visible := true;
+        Sleep(3000);
+        Label2.Visible := false;
+      end);
   finally
     bmp.Free;
   end;
@@ -176,7 +183,7 @@ begin
 end;
 
 procedure TForm1.Image1Paint(Sender: TObject; Canvas: TCanvas;
-  const ARect: TRectF);
+const ARect: TRectF);
 var
   X, Y, max: Single;
 begin
@@ -242,28 +249,26 @@ begin
   bmps := bmps + [bmp];
 end;
 
-procedure TForm1.PopupMenu1Popup(Sender: TObject);
-begin
-  if Assigned(TreeView1.Selected) and IsGraphic(TreeView1.Selected.Text) then
-    PopupMenu1.Items[1].Enabled := true
-  else
-    PopupMenu1.Items[1].Enabled := false;
-end;
-
 procedure TForm1.TrackBar1Tracking(Sender: TObject);
 begin
   for var bmp in bmps do
     bmp.Free;
-  bmps:=[];
+  bmps := [];
   LoadFLISTdata;
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject);
 var
   item: TTreeViewItem;
+  bool: Boolean;
 begin
   item := TreeView1.Selected;
-  if not Assigned(item) or not DirectoryExists(item.TagString) then
+  if not Assigned(item) then
+    Exit;
+  bool := IsGraphic(item.Text);
+  MenuItem6.Enabled := bool;
+  PopupMenu1.Items[1].Enabled := bool;
+  if not DirectoryExists(item.TagString) then
     Exit;
   for var i := item.Count - 1 downto 0 do
     item.Items[i].Free;
