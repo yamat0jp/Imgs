@@ -42,6 +42,9 @@ type
     Action2: TAction;
     MenuItem6: TMenuItem;
     Label2: TLabel;
+    Action3: TAction;
+    MenuItem8: TMenuItem;
+    MenuItem9: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
     procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
@@ -51,6 +54,7 @@ type
     procedure Action2Execute(Sender: TObject);
     procedure TreeView1DblClick(Sender: TObject);
     procedure TrackBar1Tracking(Sender: TObject);
+    procedure Action3Execute(Sender: TObject);
   private
     { private êÈåæ }
     flist: TStringList;
@@ -69,7 +73,7 @@ implementation
 
 {$R *.fmx}
 
-uses System.IOUtils, System.Threading, FMX.Platform;
+uses System.IOUtils, System.Threading, FMX.Platform, WinAPI.ShellAPI;
 
 var
   bmps: TArray<TBitmap>;
@@ -113,6 +117,17 @@ begin
   finally
     bmp.Free;
   end;
+end;
+
+procedure TForm1.Action3Execute(Sender: TObject);
+var
+  s: string;
+begin
+  if not Assigned(TreeView1.Selected) then
+    Exit;
+  s := TreeView1.Selected.TagString;
+  if FileExists(s) then
+    ShellExecute(0, 'open', PChar(s), nil, nil, 1);
 end;
 
 procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);

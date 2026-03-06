@@ -72,6 +72,10 @@ object Form1: TForm1
       Enabled = False
       ImageIndex = -1
     end
+    object MenuItem8: TMenuItem
+      Action = Action3
+      ImageIndex = -1
+    end
   end
   object Panel2: TPanel
     Align = Client
@@ -116,7 +120,7 @@ object Form1: TForm1
         Anchors = [akLeft, akTop, akRight]
         Position.X = 6.000000000000000000
         Position.Y = -6.000000000000000000
-        Size.Width = 17425.000000000000000000
+        Size.Width = 18120.000000000000000000
         Size.Height = 527.000000000000000000
         Size.PlatformDefault = False
         OnPaint = Image1Paint
@@ -30900,6 +30904,11 @@ object Form1: TForm1
         Locked = True
         ImageIndex = -1
       end
+      object MenuItem9: TMenuItem
+        Action = Action3
+        Locked = True
+        ImageIndex = -1
+      end
     end
   end
   object ActionList1: TActionList
@@ -30925,6 +30934,11 @@ object Form1: TForm1
       Category = #12450#12452#12486#12512
       Text = #12463#12522#12483#12503#12508#12540#12489#12395#12467#12500#12540
       OnExecute = Action2Execute
+    end
+    object Action3: TAction
+      Category = #12450#12452#12486#12512
+      Text = #12499#12517#12540#12450#12391#38283#12367
+      OnExecute = Action3Execute
     end
   end
 end
