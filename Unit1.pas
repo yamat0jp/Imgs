@@ -52,9 +52,10 @@ type
     procedure TreeView1DblClick(Sender: TObject);
     procedure TrackBar1Tracking(Sender: TObject);
     procedure Action3Execute(Sender: TObject);
+    procedure Thumbnails1LoadFile(Sender: TObject; cnt: Integer);
   private
     { private êÈåæ }
-    procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
+    procedure AddDir(dir: TTreeViewItem; const depth: Integer = 2);
     function IsGraphic(const Text: string): Boolean;
   public
     { public êÈåæ }
@@ -120,7 +121,7 @@ begin
     ShellExecute(0, 'open', PChar(s), nil, nil, 1);
 end;
 
-procedure TForm1.AddDir(dir: TTreeViewItem; const depth: integer = 2);
+procedure TForm1.AddDir(dir: TTreeViewItem; const depth: Integer = 2);
 const
   mes = '(no Image files)';
 var
@@ -188,6 +189,14 @@ begin
     if ExtractFileExt(Text).ToLower = arg then
       Exit(true);
   result := false;
+end;
+
+procedure TForm1.Thumbnails1LoadFile(Sender: TObject; cnt: Integer);
+begin
+  if cnt = ProgressBar1.Max then
+    ProgressBar1.Value := 0
+  else
+    ProgressBar1.Value := cnt;
 end;
 
 procedure TForm1.TrackBar1Tracking(Sender: TObject);
