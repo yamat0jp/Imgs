@@ -12,7 +12,7 @@ uses
   FMX.Bind.GenData, System.Rtti, System.Bindings.Outputs, FMX.Bind.Editors,
   Data.Bind.EngExt, FMX.Bind.DBEngExt, Data.Bind.Components,
   Data.Bind.ObjectScope, Data.Bind.GenData, FMX.ListBox, System.Actions,
-  FMX.ActnList, FMX.StdActns;
+  FMX.ActnList, FMX.StdActns, Thumbnails;
 
 type
   TForm1 = class(TForm)
@@ -24,7 +24,6 @@ type
     Panel2: TPanel;
     FramedVertScrollBox1: TFramedVertScrollBox;
     StyleBook1: TStyleBook;
-    Image1: TImage;
     Image2: TImage;
     Label1: TLabel;
     ProgressBar1: TProgressBar;
@@ -45,11 +44,9 @@ type
     Action3: TAction;
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
+    Thumbnails1: TThumbnails;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
-    procedure Image1Paint(Sender: TObject; Canvas: TCanvas;
-      const ARect: TRectF);
-    procedure FormDestroy(Sender: TObject);
     procedure Action1Execute(Sender: TObject);
     procedure Action2Execute(Sender: TObject);
     procedure TreeView1DblClick(Sender: TObject);
@@ -57,10 +54,7 @@ type
     procedure Action3Execute(Sender: TObject);
   private
     { private êÈåæ }
-    flist: TStringList;
     procedure AddDir(dir: TTreeViewItem; const depth: integer = 2);
-    procedure Main(FileName: string);
-    procedure LoadFLISTdata;
     function IsGraphic(const Text: string): Boolean;
   public
     { public êÈåæ }
@@ -73,12 +67,8 @@ implementation
 
 {$R *.fmx}
 
-uses System.IOUtils, System.Threading, FMX.Platform, WinAPI.ShellAPI;
-
-var
-  bmps: TArray<TBitmap>;
-  [weak]
-  task: ITask;
+uses System.IOUtils, System.Threading, FMX.Platform, WinAPI.ShellAPI,
+  System.Math;
 
 procedure TForm1.Action1Execute(Sender: TObject);
 begin
@@ -157,7 +147,7 @@ begin
     Child.TagString := s;
     dir.AddObject(Child);
     if depth = 2 then
-      flist.Add(s);
+      Thumbnails1.Files.Add(s);
   end;
   if dir.Count = 0 then
   begin
@@ -187,44 +177,7 @@ begin
   Node.Text := TPath.GetDownloadsPath;
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
-  flist := TStringList.Create;
-end;
-
-procedure TForm1.FormDestroy(Sender: TObject);
-begin
-  for var bmp in bmps do
-    bmp.Free;
-  flist.Free;
-end;
-
-procedure TForm1.Image1Paint(Sender: TObject; Canvas: TCanvas;
-const ARect: TRectF);
-var
-  X, Y, max: Single;
-begin
-  X := 10;
-  Y := 10;
-  max := 0.0;
-  for var bmp in bmps do
-  begin
-    if X + bmp.Width < FramedVertScrollBox1.Width then
-      Canvas.DrawBitmap(bmp, bmp.BoundsF, TRectF.Create(X, Y, X + bmp.Width,
-        Y + bmp.Height), 1, true)
-    else
-    begin
-      X := 10;
-      Y := max + 10;
-      Canvas.DrawBitmap(bmp, bmp.BoundsF, TRectF.Create(X, Y, X + bmp.Width,
-        Y + bmp.Height), 1, true);
-    end;
-    X := X + bmp.Width + 10;
-    if Y + bmp.Height > max then
-      max := Y + bmp.Height;
-  end;
-  if FramedVertScrollBox1.Height < max then
-    Image1.Height := max
-  else
-    Image1.Height := FramedVertScrollBox1.Height;
+  Thumbnails1.MinHeight := FramedVertScrollBox1.Height;
 end;
 
 function TForm1.IsGraphic(const Text: string): Boolean;
@@ -237,39 +190,9 @@ begin
   result := false;
 end;
 
-procedure TForm1.LoadFLISTdata;
-begin
-  for var i := 0 to flist.Count - 1 do
-  begin
-    Main(flist[i]);
-    if i mod 5 = 0 then
-    begin
-      Image1.Repaint;
-      ProgressBar1.Value := i + 1;
-    end;
-  end;
-  Image1.Repaint;
-  ProgressBar1.Value := 0;
-end;
-
-procedure TForm1.Main(FileName: string);
-var
-  wid, hei: Word;
-  bmp: TBitmap;
-begin
-  wid := 100 + Round(TrackBar1.Value) * 50;
-  hei := wid;
-  bmp := TBitmap.Create(wid, hei);
-  bmp.LoadThumbnailFromFile(FileName, wid, hei, false);
-  bmps := bmps + [bmp];
-end;
-
 procedure TForm1.TrackBar1Tracking(Sender: TObject);
 begin
-  for var bmp in bmps do
-    bmp.Free;
-  bmps := [];
-  LoadFLISTdata;
+  Thumbnails1.ThumbnailSize := 100 + 50 * Ceil(TrackBar1.Value);
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject);
@@ -287,18 +210,13 @@ begin
     Exit;
   for var i := item.Count - 1 downto 0 do
     item.Items[i].Free;
-  for var bmp in bmps do
-    bmp.Free;
-  bmps := [];
-  if Assigned(task) then
-    task.Cancel;
-  flist.Clear;
+  Thumbnails1.Files.Clear;
   AddDir(item);
+  Thumbnails1.Execute;
   item.Expand;
-  Label1.Text := ' ' + flist.Count.ToString + ' files';
+  Label1.Text := ' ' + Thumbnails1.Files.Count.ToString + ' files';
   ProgressBar1.Value := 0;
-  ProgressBar1.max := flist.Count;
-  task := TTask.Run(LoadFLISTdata);
+  ProgressBar1.max := Thumbnails1.Files.Count;
   FramedVertScrollBox1.RecalcSize;
   FramedVertScrollBox1.ViewportPosition := TPointF.Create(0, 0);
 end;

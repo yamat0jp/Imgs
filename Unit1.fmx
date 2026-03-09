@@ -10,7 +10,6 @@ object Form1: TForm1
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   Left = 400
   Top = 360
   DesignerMasterStyle = 0
@@ -111,19 +110,18 @@ object Form1: TForm1
       Size.Height = 531.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
-      Viewport.Width = 745.000000000000000000
+      Viewport.Width = 737.000000000000000000
       Viewport.Height = 527.000000000000000000
-      object Image1: TImage
-        MultiResBitmap = <
-          item
-          end>
-        Anchors = [akLeft, akTop, akRight]
-        Position.X = 6.000000000000000000
+      object Thumbnails1: TThumbnails
+        Position.X = -2.000000000000000000
         Position.Y = -6.000000000000000000
-        Size.Width = 18120.000000000000000000
-        Size.Height = 527.000000000000000000
+        Size.Width = 745.000000000000000000
+        Size.Height = 531.000000000000000000
         Size.PlatformDefault = False
-        OnPaint = Image1Paint
+        ThumbnailSize = 100
+        AutoSize = True
+        InnerMargin = 10
+        MinHeight = 531.000000000000000000
       end
     end
   end
