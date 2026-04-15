@@ -225,7 +225,7 @@ begin
   item.Expand;
   Label1.Text := ' ' + Thumbnails1.Files.Count.ToString + ' files';
   ProgressBar1.Value := 0;
-  ProgressBar1.max := Thumbnails1.Files.Count;
+  ProgressBar1.Max := Thumbnails1.Files.Count;
   FramedVertScrollBox1.RecalcSize;
   FramedVertScrollBox1.ViewportPosition := TPointF.Create(0, 0);
 end;

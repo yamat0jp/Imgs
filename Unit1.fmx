@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 400
   Top = 360
-  Caption = 'Imgs Viewer  v1.3.0'
+  Caption = 'Imgs Viewer  v1.4.0'
   ClientHeight = 673
   ClientWidth = 1046
   Position = Designed
@@ -113,9 +113,8 @@ object Form1: TForm1
       Viewport.Width = 737.000000000000000000
       Viewport.Height = 527.000000000000000000
       object Thumbnails1: TThumbnails
-        Position.X = -2.000000000000000000
-        Position.Y = -6.000000000000000000
-        Size.Width = 745.000000000000000000
+        Align = Top
+        Size.Width = 737.000000000000000000
         Size.Height = 531.000000000000000000
         Size.PlatformDefault = False
         ThumbnailSize = 100
