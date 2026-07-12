@@ -22,7 +22,6 @@ type
     Panel1: TPanel;
     TrackBar1: TTrackBar;
     Panel2: TPanel;
-    FramedVertScrollBox1: TFramedVertScrollBox;
     StyleBook1: TStyleBook;
     Image2: TImage;
     Label1: TLabel;
@@ -178,7 +177,6 @@ begin
   Node.Text := TPath.GetDownloadsPath;
   Node.TagString := Node.Text;
   TreeView1.AddObject(Node);
-  Thumbnails1.MinHeight := FramedVertScrollBox1.Height;
 end;
 
 function TForm1.IsGraphic(const Text: string): Boolean;
@@ -226,8 +224,7 @@ begin
   Label1.Text := ' ' + Thumbnails1.Files.Count.ToString + ' files';
   ProgressBar1.Value := 0;
   ProgressBar1.Max := Thumbnails1.Files.Count;
-  FramedVertScrollBox1.RecalcSize;
-  FramedVertScrollBox1.ViewportPosition := TPointF.Create(0, 0);
+  Thumbnails1.ViewportPosition := TPointF.Create(0, 0);
 end;
 
 procedure TForm1.TreeView1DblClick(Sender: TObject);
