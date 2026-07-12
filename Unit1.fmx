@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 400
   Top = 360
-  Caption = 'Imgs Viewer  v1.4.1'
+  Caption = 'Imgs Viewer  v1.5.0'
   ClientHeight = 673
   ClientWidth = 1046
   Position = Designed
@@ -10,6 +10,7 @@ object Form1: TForm1
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Left = 400
   Top = 360
   DesignerMasterStyle = 0
@@ -30874,6 +30875,20 @@ object Form1: TForm1
     Top = 136
     object MenuItem3: TMenuItem
       Text = #12501#12449#12452#12523
+      object MenuItem11: TMenuItem
+        Action = Action4
+        Locked = True
+        ImageIndex = -1
+      end
+      object MenuItem13: TMenuItem
+        Action = Action5
+        Locked = True
+        ImageIndex = -1
+      end
+      object MenuItem12: TMenuItem
+        Locked = True
+        Text = '-'
+      end
       object MenuItem7: TMenuItem
         Action = FileExit1
         Locked = True
@@ -30887,6 +30902,12 @@ object Form1: TForm1
         Locked = True
         ImageIndex = -1
       end
+      object MenuItem10: TMenuItem
+        Locked = True
+        AutoCheck = True
+        IsChecked = True
+        Text = #33258#21205#12391#38283#12367
+      end
       object MenuItem6: TMenuItem
         Action = Action2
         Enabled = False
@@ -30899,6 +30920,10 @@ object Form1: TForm1
         ImageIndex = -1
       end
     end
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 672
+    Top = 232
   end
   object ActionList1: TActionList
     Left = 592
@@ -30928,6 +30953,16 @@ object Form1: TForm1
       Category = #12450#12452#12486#12512
       Text = #12499#12517#12540#12450#12391#38283#12367
       OnExecute = Action3Execute
+    end
+    object Action4: TAction
+      Category = #12501#12449#12452#12523
+      Text = #12501#12457#12523#12480#12434#36861#21152
+      OnExecute = Action4Execute
+    end
+    object Action5: TAction
+      Category = #12501#12449#12452#12523
+      Text = #12501#12457#12523#12480#12434#21066#38500
+      OnExecute = Action5Execute
     end
   end
 end

@@ -44,6 +44,13 @@ type
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     Thumbnails1: TThumbnails;
+    MenuItem10: TMenuItem;
+    Action4: TAction;
+    OpenDialog1: TOpenDialog;
+    MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    MenuItem13: TMenuItem;
+    Action5: TAction;
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject);
     procedure Action1Execute(Sender: TObject);
@@ -52,9 +59,14 @@ type
     procedure TrackBar1Tracking(Sender: TObject);
     procedure Action3Execute(Sender: TObject);
     procedure Thumbnails1LoadFile(Sender: TObject; cnt: Integer);
+    procedure Action4Execute(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure Action5Execute(Sender: TObject);
   private
-    { private 宣言 }
-    procedure AddDir(dir: TTreeViewItem; const depth: Integer = 2);
+  { private 宣言 }
+    const
+    max_depth = 2;
+    procedure AddDir(dir: TTreeViewItem; const depth: Integer = max_depth);
     function IsGraphic(const Text: string): Boolean;
   public
     { public 宣言 }
@@ -68,7 +80,7 @@ implementation
 {$R *.fmx}
 
 uses System.IOUtils, System.Threading, FMX.Platform, WinAPI.ShellAPI,
-  System.Math;
+  System.Math, WinAPI.ShlObj;
 
 procedure TForm1.Action1Execute(Sender: TObject);
 begin
@@ -120,7 +132,34 @@ begin
     ShellExecute(0, 'open', PChar(s), nil, nil, 1);
 end;
 
-procedure TForm1.AddDir(dir: TTreeViewItem; const depth: Integer = 2);
+procedure TForm1.Action4Execute(Sender: TObject);
+const
+  max_path = 255;
+var
+  node: TTreeViewItem;
+  bi: TBrowseInfo;
+  pidl: PItemIDList;
+  Path: array [0 .. max_path] of Char;
+begin
+  FillChar(bi, SizeOf(bi), 0);
+  bi.lpszTitle := PChar('追加ディレクトリ');
+  bi.ulFlags := BIF_RETURNONLYFSDIRS or BIF_NEWDIALOGSTYLE;
+
+  pidl := SHBrowseForFolder(bi);
+  if Assigned(pidl) then
+    SHGetPathFromIDList(pidl, Path);
+  node := TTreeViewItem.Create(TreeView1);
+  node.Text := Path;
+  node.TagString := node.Text;
+  node.Parent := TreeView1;
+end;
+
+procedure TForm1.Action5Execute(Sender: TObject);
+begin
+  TreeView1.Selected.Free;
+end;
+
+procedure TForm1.AddDir(dir: TTreeViewItem; const depth: Integer = max_depth);
 const
   mes = '(no Image files)';
 var
@@ -146,7 +185,7 @@ begin
     Child.Text := ExtractFileName(s);
     Child.TagString := s;
     dir.AddObject(Child);
-    if depth = 2 then
+    if depth = max_depth then
       Thumbnails1.Files.Add(s);
   end;
   if dir.Count = 0 then
@@ -159,24 +198,53 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 var
-  Node: TTreeViewItem;
+  node: TTreeViewItem;
+  ls: TStringList;
+  fname: string;
 begin
-  Node := TTreeViewItem.Create(TreeView1);
-  Node.Text := TPath.GetPicturesPath;
-  Node.TagString := Node.Text;
-  TreeView1.AddObject(Node);
-  Node := TTreeViewItem.Create(TreeView1);
-  Node.Text := TPath.GetDesktopPath;
-  Node.TagString := Node.Text;
-  TreeView1.AddObject(Node);
-  Node := TTreeViewItem.Create(TreeView1);
-  Node.Text := TPath.GetDocumentsPath;
-  Node.TagString := Node.Text;
-  TreeView1.AddObject(Node);
-  Node := TTreeViewItem.Create(TreeView1);
-  Node.Text := TPath.GetDownloadsPath;
-  Node.TagString := Node.Text;
-  TreeView1.AddObject(Node);
+  fname := ChangeFileExt(ParamStr(0), '.txt');
+  if not FileExists(fname) then
+    Exit;
+  ls := TStringList.Create;
+  try
+    ls.LoadFromFile(fname);
+    for var s in ls do
+    begin
+      node := TTreeViewItem.Create(TreeView1);
+      node.Text := s;
+      node.TagString := s;
+      node.Parent := TreeView1;
+      AddDir(node);
+    end;
+  finally
+    ls.Free;
+  end;
+  fname := TPath.GetPicturesPath;
+  for var i := 0 to TreeView1.Count - 1 do
+  begin
+    node := TreeView1.Items[i];
+    if (node.ParentItem = nil) and (node.Text = fname) then
+      Exit;
+  end;
+  node := TTreeViewItem.Create(TreeView1);
+  TreeView1.InsertObject(0, node);
+  node.Text := fname;
+  node.TagString := node.Text;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+var
+  ls: TStringList;
+begin
+  ls := TStringList.Create;
+  try
+    for var i := 0 to TreeView1.Count - 1 do
+      if TreeView1.Items[i].ParentItem = nil then
+        ls.Add(TreeView1.Items[i].Text);
+    ls.SaveToFile(ChangeFileExt(ParamStr(0), '.txt'));
+  finally
+    ls.Free;
+  end;
 end;
 
 function TForm1.IsGraphic(const Text: string): Boolean;
@@ -186,7 +254,7 @@ begin
   for var arg in args do
     if ExtractFileExt(Text).ToLower = arg then
       Exit(true);
-  result := false;
+  Result := false;
 end;
 
 procedure TForm1.Thumbnails1LoadFile(Sender: TObject; cnt: Integer);
@@ -225,6 +293,8 @@ begin
   ProgressBar1.Value := 0;
   ProgressBar1.Max := Thumbnails1.Files.Count;
   Thumbnails1.ViewportPosition := TPointF.Create(0, 0);
+  if MenuItem10.IsChecked then
+    TreeView1.ExpandAll;
 end;
 
 procedure TForm1.TreeView1DblClick(Sender: TObject);
